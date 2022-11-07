@@ -27,7 +27,7 @@ for i in range(5):
     article = articles[i]
     filename = article["href"].split("/")[-1]
     with open(file=F"./LoL/{filename}.txt", mode="w", encoding="utf8") as file1:
-        file1.write(article["title"] + "\n")
+        
         file1.write(article["text"])
     print("full-href", URL[:14] + article["href"])
     print("title", article["title"])
