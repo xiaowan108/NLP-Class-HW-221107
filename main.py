@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from string import punctuation, ascii_letters, digits
 import nltk
+import os
 
 def ptt_scraping(url):
     articles = []
@@ -19,24 +20,31 @@ def ptt_scraping(url):
     return articles
 
 URL = "https://www.ptt.cc/bbs/LoL"
-URL = "https://www.ptt.cc/bbs/PlayStation"
 print(URL)
 
 articles = ptt_scraping(url=URL)
 for i in range(5):
     article = articles[i]
     filename = article["href"].split("/")[-1]
-    with open(file=F"./LoL/{filename}.txt", mode="w", encoding="utf8") as file1:
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "LoL")):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "LoL"))
+
+    with open(os.path.join(os.path.dirname(__file__), "LoL", F"{filename}.txt"), "w", encoding="utf8") as file1:
         file1.write(article["title"] + "\n")
         file1.write(article["text"])
     print("full-href", URL[:14] + article["href"])
     print("title", article["title"])
 
+
+URL = "https://www.ptt.cc/bbs/PlayStation"
+print(URL)
 articles = ptt_scraping(url=URL)
 for i in range(5):
     article = articles[i]
     filename = article["href"].split("/")[-1]
-    with open(file="./PlayStation/{filename}.txt", mode="w", encoding="utf8") as file1:
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "PlayStation")):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "PlayStation"))
+    with open(os.path.join(os.path.dirname(__file__), "PlayStation", F"{filename}.txt"), "w", encoding="utf8") as file1:
         file1.write(article["title"] + "\n")
         file1.write(article["text"])
     print("full-href", URL[:14] + article["href"])
