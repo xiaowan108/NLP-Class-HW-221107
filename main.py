@@ -19,32 +19,32 @@ def ptt_scraping(url):
             articles.append({"title":title, "href":href, "text":soup2.text})
     return articles
 
-URL = "https://www.ptt.cc/bbs/LoL"
+URL = "https://www.ptt.cc/bbs/Plant"
 print(URL)
 
 articles = ptt_scraping(url=URL)
 for i in range(5):
     article = articles[i]
     filename = article["href"].split("/")[-1]
-    if not os.path.exists(os.path.join(os.path.dirname(__file__), "LoL")):
-        os.mkdir(os.path.join(os.path.dirname(__file__), "LoL"))
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "Plant")):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "Plant"))
 
-    with open(os.path.join(os.path.dirname(__file__), "LoL", F"{filename}.txt"), "w", encoding="utf8") as file1:
+    with open(os.path.join(os.path.dirname(__file__), "Plant", F"{filename}.txt"), "w", encoding="utf8") as file1:
         file1.write(article["title"] + "\n")
         file1.write(article["text"])
     print("full-href", URL[:14] + article["href"])
     print("title", article["title"])
 
 
-URL = "https://www.ptt.cc/bbs/PlayStation"
+URL = "https://www.ptt.cc/bbs/Agriculture"
 print(URL)
 articles = ptt_scraping(url=URL)
 for i in range(5):
     article = articles[i]
     filename = article["href"].split("/")[-1]
-    if not os.path.exists(os.path.join(os.path.dirname(__file__), "PlayStation")):
-        os.mkdir(os.path.join(os.path.dirname(__file__), "PlayStation"))
-    with open(os.path.join(os.path.dirname(__file__), "PlayStation", F"{filename}.txt"), "w", encoding="utf8") as file1:
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "Agriculture")):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "Agriculture"))
+    with open(os.path.join(os.path.dirname(__file__), "Agriculture", F"{filename}.txt"), "w", encoding="utf8") as file1:
         file1.write(article["title"] + "\n")
         file1.write(article["text"])
     print("full-href", URL[:14] + article["href"])
