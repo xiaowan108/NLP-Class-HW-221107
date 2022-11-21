@@ -108,7 +108,7 @@ with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", enc
     hrefs = json.loads(fs1.read())
 
 print(F"共{len(hrefs)}筆資料")
-#getAllContent(hrefs, page)
+getAllContent(hrefs, page)
 
 
 #Agriculture
@@ -128,7 +128,7 @@ with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", enc
 
 print(F"共{len(hrefs)}筆資料")
 
-#getAllContent(hrefs, page)
+getAllContent(hrefs, page)
 
 """
 #Teacher's code
