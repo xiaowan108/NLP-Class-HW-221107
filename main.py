@@ -130,6 +130,7 @@ print(F"共{len(hrefs)}筆資料")
 
 #getAllContent(hrefs, page)
 
+"""
 #Teacher's code
 from nltk.corpus.reader import PlaintextCorpusReader
 source_dir = "Gossiping/May 27/"
@@ -155,3 +156,4 @@ corpus = PathLineSentences(source_dir)#"Gossiping")
 #    find a word x in an analogy like "man : king :: woman : x" (read: man is to king as woman is to x) 
 #    in your PTT texts.
 #    (Please upload your Python script to GitHub, and paste your GitHub link on the online text of eCourse homework.)
+"""
