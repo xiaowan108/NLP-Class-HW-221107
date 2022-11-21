@@ -88,7 +88,7 @@ def getContent(start, end, hrefs):
         soup = BeautifulSoup(r.text, "html5lib")
         filename = hrefs[i].split("/")[-1]
         with open(os.path.join(os.path.dirname(__file__), "Plant", F"{filename}.txt"), "w", encoding="utf8") as file1:
-            file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
+            #file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
             file1.write(soup.text)
 
 #Plant
