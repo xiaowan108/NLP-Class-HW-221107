@@ -14,24 +14,6 @@ URL = "https://www.ptt.cc/bbs/Plant"
 baseUrl = 'https://www.ptt.cc/bbs/'
 articles = []
 
-
-def ptt_scraping(url):
-    r = requests.get(url=URL, cookies={"over18":"1"})
-    soup = BeautifulSoup(r.text, "html5lib")
-    tag_divs = soup.find_all("div", class_="title")
-    for tag in tag_divs:
-        if tag.find("a"):
-            href = tag.find("a")["href"]
-            title = tag.find("a").text
-            print(href, title)
-            """
-            r2=requests.get(url="http://ptt.cc"+href, cook
-            ies={"over18":"1"})
-            soup2 = BeautifulSoup(r2.text, "html5lib")
-            articles.append({"title":title, "href":href, "text":soup2.text})
-            """
-    return articles
-
 def getAllContent(hrefs):
     num = len(hrefs)
     #設定8線程
