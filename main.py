@@ -14,7 +14,7 @@ URL = "https://www.ptt.cc/bbs/Plant"
 baseUrl = 'https://www.ptt.cc/bbs/'
 articles = []
 
-def getAllContent(hrefs):
+def getAllContent(hrefs, page):
     num = len(hrefs)
     #設定8線程
     threadsNum = 8
@@ -22,10 +22,10 @@ def getAllContent(hrefs):
     print(F"取得所有資料中，共{num}筆")
     tmp = (int)(num/threadsNum)
     thr = {}
-    thr[0] = Thread(target=getContent, kwargs={'start':1, 'end':tmp, 'hrefs': hrefs})
+    thr[0] = Thread(target=getContent, kwargs={'start':1, 'end':tmp, 'hrefs': hrefs, 'page': page})
     for i in range(1,threadsNum-1):
-        thr[i] = Thread(target=getContent, kwargs={'start':tmp*i, 'end':tmp*(i+1), 'hrefs': hrefs})
-    thr[threadsNum-1] = Thread(target=getContent, kwargs={'start':tmp*(threadsNum-1), 'end':num, 'hrefs': hrefs})
+        thr[i] = Thread(target=getContent, kwargs={'start':tmp*i, 'end':tmp*(i+1), 'hrefs': hrefs, 'page': page})
+    thr[threadsNum-1] = Thread(target=getContent, kwargs={'start':tmp*(threadsNum-1), 'end':num, 'hrefs': hrefs, 'page': page})
     #thread開始
     for i in range(threadsNum):
         thr[i].start()
@@ -82,12 +82,12 @@ def getUrl(start, end, url, hrefs):
             if tag.find("a"):
                 hrefs.append(tag.find("a")["href"])
 
-def getContent(start, end, hrefs):
+def getContent(start, end, hrefs, page):
     for i in range(start, end):
         r = requests.get(url="http://ptt.cc"+hrefs[i], cookies={"over18":"1"})
         soup = BeautifulSoup(r.text, "html5lib")
         filename = hrefs[i].split("/")[-1]
-        with open(os.path.join(os.path.dirname(__file__), "Plant", F"{filename}.txt"), "w", encoding="utf8") as file1:
+        with open(os.path.join(os.path.dirname(__file__), page, F"{filename}.txt"), "w", encoding="utf8") as file1:
             #file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
             file1.write(soup.text)
 
@@ -99,14 +99,33 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
 """
 hrefs = getAllhref(page)
 #儲存list
-with open(os.path.join(os.path.dirname(__file__), page, "hrefs.txt"), "w", encoding="utf8") as fs1:
+with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
     fs1.write(json.dumps(hrefs))
 """
 #讀取list
 
-with open(os.path.join(os.path.dirname(__file__), page, "hrefs.txt"), "r", encoding="utf8") as fs1:
+with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
+    hrefs = json.loads(fs1.read())
+
+print(F"共{len(hrefs)}筆資料")
+#getAllContent(hrefs, page)
+
+
+#Agriculture
+page = 'Agriculture'
+#檢查是否已新增資料夾
+if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
+    os.mkdir(os.path.join(os.path.dirname(__file__), page))
+"""
+hrefs = getAllhref(page)
+#儲存list
+with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
+    fs1.write(json.dumps(hrefs))
+"""
+#讀取list
+with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
     hrefs = json.loads(fs1.read())
 
 print(F"共{len(hrefs)}筆資料")
 
-getAllContent(hrefs)
+#getAllContent(hrefs, page)
