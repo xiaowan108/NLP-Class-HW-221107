@@ -1,14 +1,14 @@
 import requests
 from bs4 import BeautifulSoup
-from string import punctuation, ascii_letters, digits
-import nltk
 import os
-import codecs
-import jieba
-from collections import Counter
 import json
+import jieba.posseg
 from threading import Thread
-
+from multiprocessing import Pool
+from nltk.corpus.reader import PlaintextCorpusReader
+from nltk.probability import FreqDist
+from gensim.models import Word2Vec
+from gensim.models.word2vec import PathLineSentences
 
 URL = "https://www.ptt.cc/bbs/Plant"
 baseUrl = 'https://www.ptt.cc/bbs/'
@@ -92,43 +92,93 @@ def getContent(start, end, hrefs, page):
             file1.write(soup.text)
             print(F'{page}:{i}')
 
-#Plant
-page = 'Plant'
-#檢查是否已新增資料夾
-if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
-    os.mkdir(os.path.join(os.path.dirname(__file__), page))
-"""
-hrefs = getAllhref(page)
-#儲存list
-with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
-    fs1.write(json.dumps(hrefs))
-"""
-#讀取list
-"""
-with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
-    hrefs = json.loads(fs1.read())
-print(F"共{len(hrefs)}筆資料")
-"""
-#取得資料
-#getAllContent(hrefs, page)
 
 
-#Agriculture
-page = 'Agriculture'
-#檢查是否已新增資料夾
-if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
-    os.mkdir(os.path.join(os.path.dirname(__file__), page))
-"""
-hrefs = getAllhref(page)
-#儲存list
-with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
-    fs1.write(json.dumps(hrefs))
-"""
-#讀取list
-"""
-with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
-    hrefs = json.loads(fs1.read())
-print(F"共{len(hrefs)}筆資料")
-"""
-#取得資料
-#getAllContent(hrefs, page)
+def multiProSol(page):
+    #檢查是否已新增資料夾
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "jieba")):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "jieba"))
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "jieba", page)):
+        os.mkdir(os.path.join(os.path.dirname(__file__), "jieba", page))
+    #設定12執行緒
+    prosNum = 12
+    dirs = os.listdir(page)
+    fs = []
+    pool = Pool(prosNum)
+    for filename in dirs:
+        fs.append((filename, page))
+    pool.starmap(doSol, fs)
+    print(F"{page}已完成")
+
+
+    
+
+def doSol(filename, page):
+    with open(os.path.join(page, filename), "r", encoding="utf8") as fs1:
+        contents = fs1.read()
+        tagged_words = jieba.posseg.cut(contents)
+        words = [word for word, pos in tagged_words if pos not in ['m']]
+        with open(os.path.join("jieba", page, filename), "w", encoding="utf8") as fs2:
+            fs2.write(" ".join(words))
+        print(filename)
+
+
+
+def doFrequency(page):
+    #讀取所有檔案
+    pcr = PlaintextCorpusReader(root=os.path.join("jieba", page), fileids=".*\.txt")
+    #進行頻率分析
+    fd = FreqDist(samples=pcr.words())
+    #印出最常出現前100個詞
+    tmp = fd.most_common(n=100)
+    print(tmp)
+    #儲存最常出現前100個詞
+    with open(F"{page}.freqTop100.txt", "w", encoding="utf-8") as fs1:
+        fs1.write(json.dumps(tmp))
+
+def w2v(page, a, b, c):
+    #讀入所有檔案
+    corpus = PathLineSentences(os.path.join("jieba", page))
+    model = Word2Vec(sentences=corpus, vector_size=100, window=5, min_count=1, workers=4)
+    #印出結果
+    tmp = model.wv.most_similar(positive=[a,b], negative=[c])
+    print(tmp)
+    with open(F"{page}.w2v.txt", "w", encoding="utf-8") as fs1:
+        fs1.write(json.dumps(tmp))
+
+
+def doAll(page, a, b, c):
+    #檢查是否已新增資料夾
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
+        os.mkdir(os.path.join(os.path.dirname(__file__), page))
+    #取得所有連結
+    print("[獲得所有連結]")
+    hrefs = getAllhref(page)
+    #儲存所有連結
+    print("[儲存所有連結]")
+    with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
+        fs1.write(json.dumps(hrefs))
+    #讀取所有連結
+    print("[讀取所有連結]")
+    with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
+        hrefs = json.loads(fs1.read())
+    print(F"共{len(hrefs)}筆資料")
+    #取得所有連結資料並儲存
+    print("[取得所有連結資料並儲存]")
+    getAllContent(hrefs, page)
+    #前面的資料做jieba斷詞並儲存
+    print("[前面的資料做jieba斷詞並儲存]")
+    multiProSol(page)
+    #對jieba斷詞做詞頻分析
+    print("[對jieba斷詞做詞頻分析]")
+    doFrequency(page)
+    #a對b如同c對什麼?
+    print("[a對b如同c對什麼?]")
+    w2v(page, a, b, c)
+
+
+if __name__ == "__main__":
+    page = 'Plant'
+    doAll(page, "植物", "作者", "踢踢")
+    page = 'Agriculture'
+    doAll(page, "農業", "台灣", "農民")
