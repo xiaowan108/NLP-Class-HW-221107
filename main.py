@@ -90,6 +90,7 @@ def getContent(start, end, hrefs, page):
         with open(os.path.join(os.path.dirname(__file__), page, F"{filename}.txt"), "w", encoding="utf8") as file1:
             #file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
             file1.write(soup.text)
+            print(F'{page}:{i}')
 
 #Plant
 page = 'Plant'
@@ -103,12 +104,13 @@ with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", enc
     fs1.write(json.dumps(hrefs))
 """
 #讀取list
-
+"""
 with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
     hrefs = json.loads(fs1.read())
-
 print(F"共{len(hrefs)}筆資料")
-getAllContent(hrefs, page)
+"""
+#取得資料
+#getAllContent(hrefs, page)
 
 
 #Agriculture
@@ -123,37 +125,10 @@ with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", enc
     fs1.write(json.dumps(hrefs))
 """
 #讀取list
+"""
 with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
     hrefs = json.loads(fs1.read())
-
 print(F"共{len(hrefs)}筆資料")
-
-getAllContent(hrefs, page)
-
 """
-#Teacher's code
-from nltk.corpus.reader import PlaintextCorpusReader
-source_dir = "Gossiping/May 27/"
-pcr = PlaintextCorpusReader(root=source_dir, fileids=".*\.txt")
-
-from nltk.probability import FreqDist
-fd = FreqDist(samples=pcr.words())
-print(fd.most_common(n=100))
-
-# 1. What are the most common words in your two PTT boards respectively? 
-#    Do they correspond to what you have expected?
-#    (Please upload your Python script to GitHub, and paste your GitHub link on the online text of eCourse homework.)
-
-
-from gensim.models import Word2Vec
-from gensim.models.word2vec import PathLineSentences
-corpus = PathLineSentences(source_dir)#"Gossiping")
-
-#model = Word2Vec(sentences=corpus, vector_size=100, window=5, min_count=1, workers=4)
-#print(model.wv.most_similar(positive=['女性',"老公"], negative=['男性']))
-
-# 2. By using the GenSim Word2Vec module, 
-#    find a word x in an analogy like "man : king :: woman : x" (read: man is to king as woman is to x) 
-#    in your PTT texts.
-#    (Please upload your Python script to GitHub, and paste your GitHub link on the online text of eCourse homework.)
-"""
+#取得資料
+#getAllContent(hrefs, page)
