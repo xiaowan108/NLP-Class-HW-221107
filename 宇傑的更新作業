@@ -1,0 +1,104 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 25 21:34:08 2022
+
+@author: 88691
+"""
+
+# -*- coding: utf-8 -*-
+"""
+@author: simon
+"""
+import requests
+from bs4 import BeautifulSoup
+#import jieba
+#from string import punctuation, ascii_letters, digits
+#import nltk
+from nltk.corpus.reader import PlaintextCorpusReader
+from nltk.probability import FreqDist
+import os
+from gensim.models import Word2Vec
+from gensim.models.word2vec import PathLineSentences
+from multiprocessing import Process, pool
+import multiprocessing
+import gensim
+
+
+def ptt_scraping(url):
+    articles = []
+    r = requests.get(url=URL, cookies={"over18":"1"})
+    soup = BeautifulSoup(r.text, "lxml")
+    tag_divs = soup.find_all("div", class_="r-ent")
+    for tag in tag_divs:
+        if tag.find("a"):
+            href = tag.find("a")["href"]
+            title = tag.find("a").text
+            
+            r2=requests.get(url="http://ptt.cc"+href, cookies={"over18":"1"})
+            soup2 = BeautifulSoup(r2.text, "lxml")
+            articles.append({"title":title, "href":href, "text":soup2.text})
+    return articles
+
+def explore_plaintext():
+    # Explore the corplus
+    corpus = PlaintextCorpusReader(output_directory,fileids=".*\.txt")
+    corpus.raw()
+    #file id :sample.txt
+    #print(corpus.fileids())
+    fd = FreqDist(samples=corpus.words())
+    print(fd.most_common(n=100))
+    return
+
+corpus_root = os.getcwd() #get the current directory
+#corpus_root='C:\Users\88691\Desktop\FreqList-Word2Vec
+source_dir = "/Nov 26/"
+output_directory = corpus_root + source_dir #output directory
+print (output_directory)
+if not os.path.exists(output_directory): os.makedirs(output_directory)
+    
+URL = "http://ptt.cc/bbs/Plant"
+print(URL)
+articles = ptt_scraping(url=URL)
+for i in range(5):
+    article = articles[i]
+    filename = output_directory + article["href"].split("/")[-1]
+    with open(file=filename+".txt", mode="w", encoding="utf-8") as file1:
+        file1.write(article["title"] + "\n")
+        file1.write(article["text"])
+    print("full-href", URL[:13] + article["href"])
+    print("title", article["title"])
+    explore_plaintext()  # function for exploring the plaintext
+    print(file1)
+    file1.closed
+# exit for-loop  
+print()
+
+URL = "http://ptt.cc/bbs/Agriculture"
+print(URL)
+articles = ptt_scraping(url=URL)
+for i in range(5):
+    article = articles[i]
+    filename = output_directory + article["href"].split("/")[-1]
+    with open(file=filename+".txt", mode="w", encoding="utf-8") as file1:
+        file1.write(article["title"] + "\n")
+        file1.write(article["text"])
+    print("full-href", URL[:13] + article["href"])
+    print("title", article["title"])
+    explore_plaintext()  # function for exploring the plaintext
+    print(file1)
+    file1.closed
+# exit for-loop  
+print()
+  
+sentences = PathLineSentences(output_directory)
+model = gensim.models.Word2Vec(sentences, vector_size=100, window=5, min_count=1, workers=multiprocessing.cpu_count())
+#save the model for offline use --- test use
+model.save(output_directory+'word2vec.model')
+#load the saved model
+et_model = gensim.models.Word2Vec.load(output_directory+"word2vec.model")
+w1="九重葛"
+w2="沙漠玫瑰"
+w3="黃金葛"
+# word vector
+#print(et_model.wv.most_similar(positive=w1))
+print(et_model.wv.most_similar(positive=[w1,w2], negative=[w3]))
