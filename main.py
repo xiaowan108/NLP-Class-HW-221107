@@ -38,7 +38,7 @@ def getAllhref(page):
     baseUrl = 'https://www.ptt.cc/bbs/'
     url = baseUrl + page
     r = requests.get(url, cookies={"over18":"1"})
-    soup = BeautifulSoup(r.text, "html5lib")
+    soup = BeautifulSoup(r.text, "lxml")
     #將標題頁網址加入
     tag_divs = soup.find_all("div", class_="title")
     for tag in tag_divs:
@@ -76,7 +76,7 @@ def getUrl(start, end, url, hrefs):
     for i in range(start, end):
         print(F"正在處理第{i}頁")
         r = requests.get(F'{url}/index{i}.html', cookies={"over18":"1"})
-        soup = BeautifulSoup(r.text, "html5lib")
+        soup = BeautifulSoup(r.text, "lxml")
         tag_divs = soup.find_all("div", class_="title")
         for tag in tag_divs:
             if tag.find("a"):
@@ -85,7 +85,7 @@ def getUrl(start, end, url, hrefs):
 def getContent(start, end, hrefs, page):
     for i in range(start, end):
         r = requests.get(url="http://ptt.cc"+hrefs[i], cookies={"over18":"1"})
-        soup = BeautifulSoup(r.text, "html5lib")
+        soup = BeautifulSoup(r.text, "lxml")
         filename = hrefs[i].split("/")[-1]
         with open(os.path.join(os.path.dirname(__file__), page, F"{filename}.txt"), "w", encoding="utf8") as file1:
             #file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
