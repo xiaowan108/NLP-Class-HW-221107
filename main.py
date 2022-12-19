@@ -10,6 +10,7 @@ from nltk.probability import FreqDist
 from gensim.models import Word2Vec
 from gensim.models.word2vec import PathLineSentences
 from string import printable
+import datetime
 
 URL = "https://www.ptt.cc/bbs/Plant"
 baseUrl = 'https://www.ptt.cc/bbs/'
@@ -85,13 +86,31 @@ def getUrl(start, end, url, hrefs):
 
 def getContent(start, end, hrefs, page):
     for i in range(start, end):
-        r = requests.get(url="http://ptt.cc"+hrefs[i], cookies={"over18":"1"})
-        soup = BeautifulSoup(r.text, "lxml")
-        filename = hrefs[i].split("/")[-1]
-        with open(os.path.join(os.path.dirname(__file__), page, F"{filename}.txt"), "w", encoding="utf8") as file1:
-            #file1.write((soup.find_all("span", class_="article-meta-value"))[2].contents[0] + "\n")
-            file1.write(soup.text)
-            print(F'{page}:{i}')
+        try:
+            r = requests.get(url="http://ptt.cc"+hrefs[i], cookies={"over18":"1"})
+            soup = BeautifulSoup(r.text, "lxml")
+            meta_spans = soup.find_all("span", class_="article-meta-value")
+            date_span = meta_spans[-1].contents[0]
+            date_time_obj = datetime.datetime.strptime(date_span, '%a %b %d %H:%M:%S %Y')
+            create_date = date_time_obj.strftime("%Y-%m-%d")
+            title = soup.title
+
+            filename = hrefs[i].split("/")[-1]
+            folder_year = date_time_obj.year
+            folder_month = date_time_obj.month
+
+            #filepath = os.path.join(os.path.dirname(__file__), page, str(folder_year), str(folder_month), F"{filename}.txt")
+            filepath = os.path.join(os.path.dirname(__file__), page, str(folder_year), F"{filename}.txt")
+            os.makedirs(os.path.dirname(filepath), exist_ok=True)
+            with open(filepath, "w", encoding="utf8") as file1:
+                file1.writelines(create_date)
+                file1.writelines("\n")
+                file1.writelines(title)
+                file1.writelines("\n")
+                file1.write(soup.text)
+                print(F'{page}:{i}')
+        except Exception as ex:
+            print(ex)
 
 
 
@@ -103,23 +122,27 @@ def multiProSol(page):
         os.mkdir(os.path.join(os.path.dirname(__file__), "jieba", page))
     #設定12執行緒
     prosNum = 16
-    dirs = os.listdir(page)
     fs = []
+    jieba.load_userdict(os.path.join(os.path.dirname(__file__), "jieba.word.txt"))
     pool = Pool(prosNum)
-    for filename in dirs:
-        fs.append((filename, page))
+    for root, dirs, files in os.walk(page):
+        for name in files:
+            if name.endswith(".txt"):
+                fs.append([os.path.join(root, name)])
+
     pool.starmap(doSol, fs)
     print(F"{page}已完成")
 
 
     
 
-def doSol(filename, page):
-    with open(os.path.join(page, filename), "r", encoding="utf8") as fs1:
+def doSol(filename):
+    with open(filename, "r", encoding="utf8") as fs1:
         contents = fs1.read()
         tagged_words = jieba.posseg.cut(contents)
         words = [word for word, pos in tagged_words if pos not in ['m']]
-        with open(os.path.join("jieba", page, filename), "w", encoding="utf8") as fs2:
+        os.makedirs(os.path.join("jieba", os.path.dirname(filename)), exist_ok=True)
+        with open(os.path.join("jieba", filename), "w", encoding="utf8") as fs2:
             fs2.write(" ".join(words))
         print(filename)
 
@@ -147,7 +170,7 @@ def doFrequency(page):
 def w2v(page, a, b, c):
     #讀入所有檔案
     corpus = PathLineSentences(os.path.join("jieba", page))
-    model = Word2Vec(sentences=corpus, vector_size=100, window=5, min_count=1, workers=4)
+    model = Word2Vec(sentences=corpus, vector_size=100, window=5, min_count=1, workers=14)
     #印出結果
     tmp = model.wv.most_similar(positive=[a,b], negative=[c])
     print(tmp)
@@ -159,7 +182,7 @@ def doAll(page, a, b, c):
     #檢查是否已新增資料夾
     if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
         os.mkdir(os.path.join(os.path.dirname(__file__), page))
-    """
+    
     #取得所有連結
     print("[獲得所有連結]")
     hrefs = getAllhref(page)
@@ -167,6 +190,7 @@ def doAll(page, a, b, c):
     print("[儲存所有連結]")
     with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "w", encoding="utf8") as fs1:
         fs1.write(json.dumps(hrefs))
+    
     #讀取所有連結
     print("[讀取所有連結]")
     with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
@@ -175,7 +199,6 @@ def doAll(page, a, b, c):
     #取得所有連結資料並儲存
     print("[取得所有連結資料並儲存]")
     getAllContent(hrefs, page)
-    
     #前面的資料做jieba斷詞並儲存
     print("[前面的資料做jieba斷詞並儲存]")
     multiProSol(page)
@@ -186,7 +209,7 @@ def doAll(page, a, b, c):
     #a對b如同c對什麼?
     print("[a對b如同c對什麼?]")
     w2v(page, a, b, c)
-
+    """
 
 if __name__ == "__main__":
     page = 'Plant'
