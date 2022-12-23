@@ -154,18 +154,22 @@ def doFrequency(page):
     stopword = f.read()
     stopwords = stopword.split()
     f.close()
-    #讀取所有檔案
-    pcr = PlaintextCorpusReader(root=os.path.join("jieba", page), fileids=".*\.txt")
-    #進行頻率分析
-    fd = FreqDist(samples=pcr.words())
-    #印出最常出現前100個詞
-    tmp = fd.most_common(n=200)
-    #過濾
-    words = [word for word,freq in tmp if word not in stopwords and word[0] not in printable]
-    print(words)
-    #儲存最常出現前100個詞
-    with open(F"{page}.freqTop100.txt", "w", encoding="utf-8") as fs1:
-        fs1.write(json.dumps(words))
+    dirs = os.listdir(os.path.join("jieba", page))
+    for folder in dirs:
+        print(F"處理{page}: {folder}")
+        #讀取所有檔案
+        pcr = PlaintextCorpusReader(root=os.path.join("jieba", page, folder), fileids=".*\.txt")
+        #進行頻率分析
+        fd = FreqDist(samples=pcr.words())
+        #印出最常出現前200個詞
+        tmp = fd.most_common(n=200)
+        #過濾
+        words = [word for word,freq in tmp if word not in stopwords and word[0] not in printable]
+        #儲存最常出現前200個詞
+        with open(os.path.join("jieba", page, F"{folder}.txt"), "w", encoding="utf-8") as fs1:
+            #fs1.write(json.dumps(words))
+            for word in words:
+                fs1.writelines(word+"\n")
 
 def w2v(page, a, b, c):
     #讀入所有檔案
@@ -182,7 +186,7 @@ def doAll(page, a, b, c):
     #檢查是否已新增資料夾
     if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
         os.mkdir(os.path.join(os.path.dirname(__file__), page))
-    
+    """
     #取得所有連結
     print("[獲得所有連結]")
     hrefs = getAllhref(page)
@@ -199,6 +203,7 @@ def doAll(page, a, b, c):
     #取得所有連結資料並儲存
     print("[取得所有連結資料並儲存]")
     getAllContent(hrefs, page)
+
     #前面的資料做jieba斷詞並儲存
     print("[前面的資料做jieba斷詞並儲存]")
     multiProSol(page)
@@ -206,6 +211,7 @@ def doAll(page, a, b, c):
     #對jieba斷詞做詞頻分析
     print("[對jieba斷詞做詞頻分析]")
     doFrequency(page)
+    """
     #a對b如同c對什麼?
     print("[a對b如同c對什麼?]")
     w2v(page, a, b, c)
