@@ -120,7 +120,7 @@ def multiProSol(page):
         os.mkdir(os.path.join(os.path.dirname(__file__), "jieba"))
     if not os.path.exists(os.path.join(os.path.dirname(__file__), "jieba", page)):
         os.mkdir(os.path.join(os.path.dirname(__file__), "jieba", page))
-    #設定12執行緒
+    #設定16執行緒
     prosNum = 16
     fs = []
     jieba.load_userdict(os.path.join(os.path.dirname(__file__), "jieba.word.txt"))
@@ -161,32 +161,28 @@ def doFrequency(page):
         pcr = PlaintextCorpusReader(root=os.path.join("jieba", page, folder), fileids=".*\.txt")
         #進行頻率分析
         fd = FreqDist(samples=pcr.words())
-        #印出最常出現前200個詞
-        tmp = fd.most_common(n=200)
+        #印出最常出現前500個詞
+        tmp = fd.most_common(500)
         #過濾
-        words = [word for word,freq in tmp if word not in stopwords and word[0] not in printable]
+        words = []
+        for word in tmp:
+            if(word[0] not in stopwords and word[0] not in printable):
+                words.append(word)
+        
+        #words = [word for word,freq in tmp if word not in stopwords and word[0] not in printable]
         #儲存最常出現前200個詞
+        
         with open(os.path.join("jieba", page, F"{folder}.txt"), "w", encoding="utf-8") as fs1:
             #fs1.write(json.dumps(words))
             for word in words:
-                fs1.writelines(word+"\n")
-
-def w2v(page, a, b, c):
-    #讀入所有檔案
-    corpus = PathLineSentences(os.path.join("jieba", page))
-    model = Word2Vec(sentences=corpus, vector_size=100, window=5, min_count=1, workers=14)
-    #印出結果
-    tmp = model.wv.most_similar(positive=[a,b], negative=[c])
-    print(tmp)
-    with open(F"{page}.w2v.txt", "w", encoding="utf-8") as fs1:
-        fs1.write(json.dumps(tmp))
+                fs1.writelines(word[0] +"\t\t"+ str(word[1])+"\n")
+        
 
 
-def doAll(page, a, b, c):
+def doAll(page):
     #檢查是否已新增資料夾
     if not os.path.exists(os.path.join(os.path.dirname(__file__), page)):
         os.mkdir(os.path.join(os.path.dirname(__file__), page))
-    """
     #取得所有連結
     print("[獲得所有連結]")
     hrefs = getAllhref(page)
@@ -200,6 +196,7 @@ def doAll(page, a, b, c):
     with open(os.path.join(os.path.dirname(__file__), F"{page}.hrefs.txt"), "r", encoding="utf8") as fs1:
         hrefs = json.loads(fs1.read())
     print(F"共{len(hrefs)}筆資料")
+    
     #取得所有連結資料並儲存
     print("[取得所有連結資料並儲存]")
     getAllContent(hrefs, page)
@@ -207,18 +204,14 @@ def doAll(page, a, b, c):
     #前面的資料做jieba斷詞並儲存
     print("[前面的資料做jieba斷詞並儲存]")
     multiProSol(page)
-    """
+
     #對jieba斷詞做詞頻分析
     print("[對jieba斷詞做詞頻分析]")
     doFrequency(page)
-    """
-    #a對b如同c對什麼?
-    print("[a對b如同c對什麼?]")
-    w2v(page, a, b, c)
-    """
+    
 
 if __name__ == "__main__":
     page = 'Plant'
-    doAll(page, "植物", "作者", "踢踢")
+    doAll(page)
     page = 'Agriculture'
-    doAll(page, "農業", "台灣", "農民")
+    doAll(page)
